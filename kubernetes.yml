@@ -1,0 +1,44 @@
+#Pipeline para implantar em OKE   
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tecnospeed-v1
+  labels:
+    commit: ${WERCKER_GIT_COMMIT}
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: tecnospeed
+  template:
+    metadata:
+      labels:
+        app: tecnospeed
+        commit: ${WERCKER_GIT_COMMIT}
+    spec:
+      containers:
+      - name: tecnospeed
+        image: ${DOCKER_REGISTRY}/${DOCKER_REPO}:${WERCKER_GIT_BRANCH}-${WERCKER_GIT_COMMIT}
+        imagePullPolicy: Always
+        ports:
+        - name: tecnospeed
+          containerPort: 8080
+          protocol: TCP
+      imagePullSecrets:
+        - name: wercker
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tecnospeed
+  labels:
+    app: tecnospeed
+    commit: ${WERCKER_GIT_COMMIT}
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: tecnospeed
+  type: LoadBalancer
+---
